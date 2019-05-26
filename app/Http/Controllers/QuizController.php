@@ -34,6 +34,28 @@ class QuizController extends Controller
             ]
         ]);
 
-        return response()->json(json_decode($response->getBody()->getContents()));
+        $data = json_decode($response->getBody()->getContents());
+        $questions = $data->clues;
+        
+        $faker = \Faker\Factory::create();
+        
+        // hold questions after removing unwanted stuff
+        $cleanedQuestions = [];
+        
+        foreach($questions as $question) {
+            // stuff 3 choices for answer
+            $question->choices = $faker->words(3);
+            // also stick the answer among the choices and shuffle
+            // we don't want any right answers to happen, after all
+            $question->choices[] = $question->answer;
+            shuffle($question->choices);
+
+            $cleanedQuestions[] = [
+                'question' => $question->question,
+                'choices' => $question->choices,
+            ];
+        }
+
+        return response()->json($cleanedQuestions);
     }
 }
